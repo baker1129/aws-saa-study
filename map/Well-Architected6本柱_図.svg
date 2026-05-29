@@ -1,0 +1,110 @@
+<svg viewBox="0 0 900 810" xmlns="http://www.w3.org/2000/svg" font-family="'Hiragino Sans','Yu Gothic','Noto Sans JP','Meiryo',sans-serif">
+  <defs>
+    <style>
+      .title { font-size: 26px; font-weight: 700; fill: #0f172a; }
+      .sub   { font-size: 15px; fill: #475569; }
+      .chipMain { font-size: 16px; font-weight: 700; fill: #ffffff; }
+      .chipSub  { font-size: 11px; fill: #ffffff; opacity: 0.92; }
+      .pName { font-size: 17px; font-weight: 700; fill: #ffffff; }
+      .pEn   { font-size: 11px; fill: #ffffff; opacity: 0.85; }
+      .kidLine { font-size: 16px; font-weight: 700; fill: #111827; }
+      .ex      { font-size: 12.5px; fill: #374151; }
+      .kwLabel { font-size: 11px; font-weight: 700; fill: #6b7280; }
+      .kw      { font-size: 11.5px; fill: #475569; }
+      .foot    { font-size: 12.5px; fill: #64748b; }
+    </style>
+  </defs>
+
+  <!-- background -->
+  <rect x="0" y="0" width="900" height="810" rx="20" fill="#f8fafc"/>
+  <rect x="0" y="0" width="900" height="810" rx="20" fill="none" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <!-- header -->
+  <text x="40" y="58" class="title">AWS Well-Architected Framework</text>
+  <text x="40" y="86" class="sub">6本の柱 ｜ たとえ：「レストランを作って、ずっと繁盛させる」ために気をつける6つのこと</text>
+  <line x1="40" y1="104" x2="860" y2="104" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <!-- ============ ROW 1 : 守る系 (blue) ============ -->
+  <!-- chip -->
+  <rect x="30" y="128" width="118" height="172" rx="14" fill="#1d4ed8"/>
+  <text x="89" y="200" text-anchor="middle" class="chipMain">🛡 守る系</text>
+  <text x="89" y="224" text-anchor="middle" class="chipSub">こわれない・</text>
+  <text x="89" y="240" text-anchor="middle" class="chipSub">とられない</text>
+
+  <!-- card ① Security -->
+  <rect x="165" y="128" width="343" height="172" rx="14" fill="#ffffff" stroke="#e5e7eb"/>
+  <path d="M165,142 a14,14 0 0 1 14,-14 h315 a14,14 0 0 1 14,14 v32 h-343 Z" fill="#2563eb"/>
+  <text x="183" y="158" class="pName">① セキュリティ</text>
+  <text x="183" y="172" class="pEn">Security</text>
+  <text x="183" y="216" class="kidLine">「どろぼうに入られない」</text>
+  <text x="183" y="242" class="ex">鍵をかける・金庫・誰が入れるか決める</text>
+  <text x="183" y="272" class="kwLabel">試験KW</text>
+  <text x="232" y="272" class="kw">暗号化 / 最小権限 / MFA / KMS / IAM</text>
+
+  <!-- card ② Reliability -->
+  <rect x="527" y="128" width="343" height="172" rx="14" fill="#ffffff" stroke="#e5e7eb"/>
+  <path d="M527,142 a14,14 0 0 1 14,-14 h315 a14,14 0 0 1 14,14 v32 h-343 Z" fill="#0891b2"/>
+  <text x="545" y="158" class="pName">② 信頼性</text>
+  <text x="545" y="172" class="pEn">Reliability</text>
+  <text x="545" y="216" class="kidLine">「こわれてもお店を止めない」</text>
+  <text x="545" y="242" class="ex">予備のコンロ・予備電源・混んでも回す</text>
+  <text x="545" y="272" class="kwLabel">試験KW</text>
+  <text x="594" y="272" class="kw">マルチAZ / 高可用性 / 自動復旧</text>
+
+  <!-- ============ ROW 2 : 動かす系 (green) ============ -->
+  <rect x="30" y="320" width="118" height="172" rx="14" fill="#047857"/>
+  <text x="89" y="388" text-anchor="middle" class="chipMain">⚙️ 動かす系</text>
+  <text x="89" y="412" text-anchor="middle" class="chipSub">ちゃんと回す・</text>
+  <text x="89" y="428" text-anchor="middle" class="chipSub">速くする</text>
+
+  <!-- card ③ Operational Excellence -->
+  <rect x="165" y="320" width="343" height="172" rx="14" fill="#ffffff" stroke="#e5e7eb"/>
+  <path d="M165,334 a14,14 0 0 1 14,-14 h315 a14,14 0 0 1 14,14 v32 h-343 Z" fill="#059669"/>
+  <text x="183" y="350" class="pName">③ 運用上の優秀性</text>
+  <text x="183" y="364" class="pEn">Operational Excellence</text>
+  <text x="183" y="408" class="kidLine">「まわし方を良くし続ける」</text>
+  <text x="183" y="434" class="ex">マニュアル・異変にすぐ気づく・改善</text>
+  <text x="183" y="464" class="kwLabel">試験KW</text>
+  <text x="232" y="464" class="kw">監視 / 自動化 / CloudWatch / IaC</text>
+
+  <!-- card ④ Performance Efficiency -->
+  <rect x="527" y="320" width="343" height="172" rx="14" fill="#ffffff" stroke="#e5e7eb"/>
+  <path d="M527,334 a14,14 0 0 1 14,-14 h315 a14,14 0 0 1 14,14 v32 h-343 Z" fill="#0d9488"/>
+  <text x="545" y="350" class="pName">④ パフォーマンス効率</text>
+  <text x="545" y="364" class="pEn">Performance Efficiency</text>
+  <text x="545" y="408" class="kidLine">「ちょうどいい大きさと速さ」</text>
+  <text x="545" y="434" class="ex">席数も人数もちょうど・待たせない</text>
+  <text x="545" y="464" class="kwLabel">試験KW</text>
+  <text x="594" y="464" class="kw">スケーリング / キャッシュ / 適切な選択</text>
+
+  <!-- ============ ROW 3 : ムダなくす系 (amber) ============ -->
+  <rect x="30" y="512" width="118" height="172" rx="14" fill="#b45309"/>
+  <text x="89" y="572" text-anchor="middle" class="chipMain">💰 ムダを</text>
+  <text x="89" y="592" text-anchor="middle" class="chipMain">なくす系</text>
+  <text x="89" y="618" text-anchor="middle" class="chipSub">お金・地球</text>
+
+  <!-- card ⑤ Cost Optimization -->
+  <rect x="165" y="512" width="343" height="172" rx="14" fill="#ffffff" stroke="#e5e7eb"/>
+  <path d="M165,526 a14,14 0 0 1 14,-14 h315 a14,14 0 0 1 14,14 v32 h-343 Z" fill="#d97706"/>
+  <text x="183" y="542" class="pName">⑤ コスト最適化</text>
+  <text x="183" y="556" class="pEn">Cost Optimization</text>
+  <text x="183" y="600" class="kidLine">「いらないお金を使わない」</text>
+  <text x="183" y="626" class="ex">使ってない電気は消す・必要な分だけ</text>
+  <text x="183" y="656" class="kwLabel">試験KW</text>
+  <text x="232" y="656" class="kw">従量課金 / 適正サイズ / RI・スポット</text>
+
+  <!-- card ⑥ Sustainability -->
+  <rect x="527" y="512" width="343" height="172" rx="14" fill="#ffffff" stroke="#e5e7eb"/>
+  <path d="M527,526 a14,14 0 0 1 14,-14 h315 a14,14 0 0 1 14,14 v32 h-343 Z" fill="#65a30d"/>
+  <text x="545" y="542" class="pName">⑥ 持続可能性</text>
+  <text x="545" y="556" class="pEn">Sustainability</text>
+  <text x="545" y="600" class="kidLine">「地球にやさしくする」</text>
+  <text x="545" y="626" class="ex">省エネ・ムダを減らす（一番新しい柱）</text>
+  <text x="545" y="656" class="kwLabel">試験KW</text>
+  <text x="594" y="656" class="kw">環境負荷の最小化 / 無駄の削減</text>
+
+  <!-- footer tip -->
+  <line x1="40" y1="712" x2="860" y2="712" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="40" y="742" class="foot">迷ったら：「止まる・こわれる」→ 信頼性 ／ 「遅い」→ パフォーマンス ／ 「お金が主役」→ コスト最適化</text>
+  <text x="40" y="766" class="foot">この6本は、思いつき設計の "抜け漏れ" を防ぐチェック項目。3ペアで覚える。</text>
+</svg>
