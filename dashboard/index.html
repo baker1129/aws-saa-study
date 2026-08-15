@@ -46,9 +46,18 @@
   .mono { font-family: ui-monospace, "Cascadia Code", "SFMono-Regular", Consolas, monospace; font-variant-numeric: tabular-nums; }
   a { color: var(--cyan); }
 
+  body { overflow-x: hidden; }
   .app { display: grid; grid-template-columns: 216px 1fr 300px; min-height: 100vh; }
   @media (max-width: 1180px) { .app { grid-template-columns: 216px 1fr; } .rail { display: none; } }
-  @media (max-width: 820px)  { .app { grid-template-columns: 1fr; } .sidebar { display: none; } }
+
+  .hamburger {
+    display: none; align-items: center; justify-content: center; flex: none;
+    width: 34px; height: 34px; border: 1px solid var(--border); background: var(--panel);
+    color: var(--ink); font-size: 17px; cursor: pointer; padding: 0;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(4,6,10,0.6); z-index: 40; }
+  .drawer-backdrop.show { display: block; }
 
   /* ---------- Sidebar ---------- */
   .sidebar { border-right: 1px solid var(--border); padding: 22px 14px; display: flex; flex-direction: column; gap: 22px; background: var(--panel); }
@@ -183,8 +192,9 @@
   details.radar-table td, table.data-table td, table.data-table th { padding: 6px 8px; border-bottom: 1px solid var(--border); color: var(--ink-soft); text-align: left; }
   details.radar-table td:last-child { text-align: right; color: var(--ink-muted); }
   table.data-table th { color: var(--ink-muted); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
-  table.data-table { overflow-x: auto; display: block; }
-  table.data-table thead, table.data-table tbody { display: table; width: 100%; table-layout: fixed; }
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .table-scroll table.data-table { min-width: 560px; }
+  .table-scroll table.data-table td, .table-scroll table.data-table th { white-space: nowrap; }
 
   /* mock exam */
   .exam-row { display: flex; align-items: center; gap: 16px; }
@@ -258,14 +268,14 @@
   /* resources */
   .resource-list { display: flex; flex-direction: column; gap: 10px; }
   .resource-item {
-    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
     border: 1px solid var(--border); background: var(--panel); padding: 14px 18px;
   }
   .resource-item .l { font-size: 13.5px; font-weight: 600; color: var(--ink); }
   .resource-item .s { font-size: 11.5px; color: var(--ink-muted); margin-top: 2px; }
 
   /* settings */
-  .settings-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .settings-row { display: flex; align-items: center; justify-content: space-between; gap: 8px 12px; flex-wrap: wrap; padding: 12px 0; border-bottom: 1px solid var(--border); }
   .settings-row:last-child { border-bottom: none; }
   .settings-row .l { font-size: 12.5px; color: var(--ink-soft); }
   .settings-row .v { font-size: 12px; color: var(--ink-muted); font-family: ui-monospace, Consolas, monospace; }
@@ -309,11 +319,43 @@
 
   footer.legal { margin-top: 22px; font-size: 11px; color: var(--ink-muted); line-height: 1.7; max-width: 720px; }
   footer.legal a { color: var(--cyan); }
+
+  /* ---------- Responsive (placed last so it wins the cascade) ---------- */
+  @media (max-width: 820px) {
+    .app { grid-template-columns: 1fr; }
+    .rail { display: block; border-left: none; border-top: 1px solid var(--border); }
+    .hamburger { display: inline-flex; }
+    .sidebar {
+      position: fixed; inset: 0 auto 0 0; width: 260px; max-width: 82vw; z-index: 50;
+      transform: translateX(-100%); transition: transform 0.22s ease;
+      box-shadow: 12px 0 28px rgba(0,0,0,0.45);
+    }
+    .sidebar.open { transform: translateX(0); }
+  }
+  @media (max-width: 560px) {
+    .main { padding: 14px 14px 44px; }
+    .rail { padding: 20px 14px 32px; }
+    .topbar h1 { font-size: 13px; }
+    .hero { height: 160px; }
+    .hero-overlay { padding: 16px 18px; }
+    .hero-top { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .hero-title { font-size: 19px; }
+    .progress-body { flex-direction: column; align-items: flex-start; }
+    .stepper { width: 100%; }
+    .step-node { width: 20px; height: 20px; font-size: 9px; flex: none; }
+    .step-line { flex: 0 0 12px; }
+    .stepper-row { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; }
+    .cols-2 { gap: 12px; }
+    .king-row, .path-row { gap: 10px; }
+    .quest-card-foot { flex-wrap: wrap; }
+  }
 </style>
 
 <div class="app">
 
-  <aside class="sidebar">
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+
+  <aside class="sidebar" id="sidebar">
     <div class="brand">
       <div class="mark">🧭</div>
       <div class="name">AWS<b>SAA QUEST</b></div>
@@ -334,7 +376,10 @@
 
   <main class="main">
     <div class="topbar">
-      <h1>おかえりなさい。今日も一歩進みましょう。</h1>
+      <div class="topbar-left">
+        <button class="hamburger" id="hamburgerBtn" aria-label="メニューを開く" aria-expanded="false" aria-controls="sidebar">☰</button>
+        <h1>おかえりなさい。今日も一歩進みましょう。</h1>
+      </div>
       <div class="status-cluster" id="statusCluster">
         <span class="chip offline" id="connChip"><span class="dot"></span> <span id="connChipText">Notion 接続確認中…</span></span>
       </div>
@@ -468,7 +513,7 @@
     <section class="view" id="view-exam" hidden>
       <div class="view-head"><h2>⚔️ 模擬試験</h2><p>Battle Log 全件</p></div>
       <div class="stat-tri" id="examStatTri"></div>
-      <div class="panel-box"><table class="data-table"><thead><tr><th>Battle</th><th>Type</th><th>Date</th><th>Result</th><th>Cause</th><th>Retry</th></tr></thead><tbody id="examFullBody"></tbody></table></div>
+      <div class="panel-box"><div class="table-scroll"><table class="data-table"><thead><tr><th>Battle</th><th>Type</th><th>Date</th><th>Result</th><th>Cause</th><th>Retry</th></tr></thead><tbody id="examFullBody"></tbody></table></div></div>
     </section>
 
     <!-- ============ VIEW: weakpoint ============ -->
@@ -669,8 +714,24 @@
   }
   document.getElementById("navlist").addEventListener("click", function (e) {
     var btn = e.target.closest("button[data-view]");
-    if (btn) showView(btn.getAttribute("data-view"));
+    if (btn) { showView(btn.getAttribute("data-view")); closeDrawer(); window.scrollTo(0, 0); }
   });
+
+  // ---------- mobile nav drawer ----------
+  var sidebarEl = $("sidebar"), backdropEl = $("drawerBackdrop"), hamburgerEl = $("hamburgerBtn");
+  function openDrawer() {
+    sidebarEl.classList.add("open"); backdropEl.classList.add("show");
+    hamburgerEl.setAttribute("aria-expanded", "true"); document.body.style.overflow = "hidden";
+  }
+  function closeDrawer() {
+    sidebarEl.classList.remove("open"); backdropEl.classList.remove("show");
+    hamburgerEl.setAttribute("aria-expanded", "false"); document.body.style.overflow = "";
+  }
+  hamburgerEl.addEventListener("click", function () {
+    sidebarEl.classList.contains("open") ? closeDrawer() : openDrawer();
+  });
+  backdropEl.addEventListener("click", closeDrawer);
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeDrawer(); });
 
   // ---------- render ----------
   function render() {
