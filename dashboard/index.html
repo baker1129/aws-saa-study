@@ -1,0 +1,980 @@
+<title>AWS SAA QUEST</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --void:        #0a0e14;
+    --panel:       #121722;
+    --panel-2:     #182030;
+    --panel-3:     #1c2536;
+    --border:      #232b3a;
+    --border-hi:   rgba(232,179,74,0.45);
+    --ink:         #eef1f6;
+    --ink-soft:    #9aa6b8;
+    --ink-muted:   #5f6b7d;
+    --accent:      #e8b34a;
+    --accent-dim:  rgba(232,179,74,0.14);
+    --cyan:        #46dbc9;
+    --cyan-dim:    rgba(70,219,201,0.14);
+    --good:        #2fce4f;
+    --good-soft:   rgba(47,206,79,0.14);
+    --warn:        #fab219;
+    --warn-soft:   rgba(250,178,25,0.14);
+    --crit:        #ff5f5a;
+    --crit-soft:   rgba(255,95,90,0.14);
+    --master:      #a58bf5;
+    --master-soft: rgba(165,139,245,0.16);
+    --cat-security:    #3987e5;
+    --cat-resilience:  #d95926;
+    --cat-performance: #199e70;
+    --cat-cost:        #c98500;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--void);
+    color: var(--ink);
+    font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 14.5px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+  .display {
+    font-family: "Bahnschrift", "Segoe UI Semibold", "Segoe UI", system-ui, sans-serif;
+    font-weight: 700; letter-spacing: 0.04em; text-wrap: balance;
+  }
+  .mono { font-family: ui-monospace, "Cascadia Code", "SFMono-Regular", Consolas, monospace; font-variant-numeric: tabular-nums; }
+  a { color: var(--cyan); }
+
+  .app { display: grid; grid-template-columns: 216px 1fr 300px; min-height: 100vh; }
+  @media (max-width: 1180px) { .app { grid-template-columns: 216px 1fr; } .rail { display: none; } }
+  @media (max-width: 820px)  { .app { grid-template-columns: 1fr; } .sidebar { display: none; } }
+
+  /* ---------- Sidebar ---------- */
+  .sidebar { border-right: 1px solid var(--border); padding: 22px 14px; display: flex; flex-direction: column; gap: 22px; background: var(--panel); }
+  .brand { display: flex; align-items: center; gap: 10px; padding: 0 6px; }
+  .brand .mark {
+    width: 34px; height: 34px; flex: none; border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, var(--cyan), var(--accent) 75%);
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
+    box-shadow: 0 0 14px rgba(70,219,201,0.35);
+  }
+  .brand .name { font-size: 11px; color: var(--ink-muted); letter-spacing: 0.1em; }
+  .brand .name b { display: block; font-size: 16px; color: var(--ink); letter-spacing: 0.03em; font-weight: 700; }
+  nav.navlist { display: flex; flex-direction: column; gap: 2px; }
+  nav.navlist button {
+    all: unset; box-sizing: border-box; cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 10px; font-size: 13px; color: var(--ink-muted);
+    border-left: 2px solid transparent; border-radius: 0 4px 4px 0;
+  }
+  nav.navlist button:hover { color: var(--ink-soft); background: rgba(255,255,255,0.03); }
+  nav.navlist button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  nav.navlist button.active { color: var(--ink); background: var(--panel-2); border-left-color: var(--accent); font-weight: 600; }
+  .sidebar-quote {
+    margin-top: auto; font-size: 11.5px; color: var(--ink-muted);
+    border-top: 1px solid var(--border); padding-top: 14px; font-style: italic; line-height: 1.6;
+  }
+
+  /* ---------- Main ---------- */
+  .main { padding: 22px 26px 60px; min-width: 0; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+  .topbar h1 { font-size: 15px; margin: 0; color: var(--ink-soft); font-weight: 600; }
+  .status-cluster { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px;
+    padding: 5px 11px; border-radius: 999px; border: 1px solid var(--border); color: var(--ink-soft); background: var(--panel);
+  }
+  .chip.live { color: var(--good); border-color: rgba(47,206,79,0.35); background: var(--good-soft); }
+  .chip.offline { color: var(--ink-muted); }
+  .chip.warn { color: var(--warn); border-color: rgba(250,178,25,0.35); background: var(--warn-soft); }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  #connBanner {
+    display: none; border: 1px solid rgba(250,178,25,0.35); background: var(--warn-soft);
+    color: var(--warn); font-size: 12.5px; padding: 10px 16px; margin-bottom: 16px;
+  }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    position: relative; overflow: hidden; border: 1px solid var(--border);
+    height: 168px; margin-bottom: 16px;
+  }
+  .hero svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .hero-overlay {
+    position: relative; z-index: 2; height: 100%; padding: 20px 24px;
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .hero-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .hero-title { font-size: 22px; margin: 0; color: #fff; text-shadow: 0 2px 12px rgba(0,0,0,0.6); }
+  .hero-sub { margin: 2px 0 0; font-size: 12.5px; color: rgba(255,255,255,0.75); text-shadow: 0 1px 6px rgba(0,0,0,0.6); }
+  .hero-chip {
+    background: rgba(10,14,20,0.55); backdrop-filter: blur(2px);
+    border: 1px solid rgba(255,255,255,0.18); border-radius: 10px; padding: 7px 12px;
+    font-size: 11.5px; color: #fff; display: flex; align-items: center; gap: 7px;
+  }
+  .hero-chip b.mono { font-size: 15px; }
+  .hero-here {
+    align-self: flex-start; background: rgba(10,14,20,0.55); border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 999px; padding: 5px 13px; font-size: 11.5px; color: #fff;
+  }
+
+  /* ---------- view switching ---------- */
+  .view[hidden] { display: none; }
+  .view-head { margin-bottom: 16px; }
+  .view-head h2 { font-size: 17px; margin: 0 0 4px; display: flex; align-items: center; gap: 9px; }
+  .view-head p { margin: 0; font-size: 12px; color: var(--ink-muted); }
+
+  /* ---------- Panels ---------- */
+  section.panel { margin-bottom: 18px; }
+  .panel-box { border: 1px solid var(--border); background: var(--panel); padding: 18px 20px; }
+  .panel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+  .panel-title { font-size: 14px; margin: 0; display: flex; align-items: center; gap: 8px; color: var(--ink); }
+  .panel-note { font-size: 11px; color: var(--ink-muted); font-family: ui-monospace, Consolas, monospace; }
+
+  .cols-2 { display: grid; grid-template-columns: 1.15fr 1fr; gap: 16px; align-items: stretch; }
+  @media (max-width: 980px) { .cols-2 { grid-template-columns: 1fr; } }
+
+  /* progress ring + stepper */
+  .progress-body { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+  .ring-wrap { flex: none; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .ring-value { font-size: 22px; fill: var(--ink); }
+  .ring-caption { font-size: 9.5px; letter-spacing: 0.08em; color: var(--ink-muted); text-transform: uppercase; }
+  .stepper { flex: 1; min-width: 220px; }
+  .stepper-row { display: flex; align-items: center; }
+  .step-node {
+    width: 22px; height: 22px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center;
+    font-size: 10px; border: 2px solid var(--border); background: var(--panel-2); color: var(--ink-muted);
+  }
+  .step-node.done { border-color: var(--good); background: var(--good-soft); color: var(--good); }
+  .step-node.active { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+  .step-line { flex: 1; height: 2px; background: var(--border); }
+  .step-line.done { background: var(--good); }
+  .step-caption { margin-top: 8px; font-size: 12px; color: var(--ink-soft); }
+  .step-caption b { color: var(--ink); }
+
+  /* quest cards */
+  .quest-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  .quest-card { border: 1px solid var(--border); background: var(--panel); padding: 15px 16px; border-left: 3px solid var(--ink-muted); }
+  .quest-card.explore { border-left-color: var(--warn); }
+  .quest-card.done { border-left-color: var(--good); opacity: 0.72; }
+  .quest-card.master { border-left-color: var(--master); opacity: 0.85; }
+  .quest-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+  .quest-card-name { font-size: 13.5px; font-weight: 600; margin: 0; color: var(--ink); }
+  .quest-card-cat { font-size: 10.5px; color: var(--ink-muted); border: 1px solid var(--border); padding: 1px 7px; flex: none; }
+  .quest-card-services { font-size: 11.5px; color: var(--ink-soft); margin: 8px 0 12px; line-height: 1.5; }
+  .quest-card-bar { height: 4px; background: rgba(255,255,255,0.06); margin-bottom: 8px; }
+  .quest-card-bar > span { display: block; height: 100%; background: linear-gradient(90deg, var(--cyan), var(--accent)); }
+  .quest-card-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; }
+  .quest-card-foot .u { font-size: 10.5px; color: var(--ink-muted); }
+  .quest-card-foot a, .btn-mini {
+    font-size: 11px; text-decoration: none; color: var(--void); background: var(--accent);
+    padding: 5px 11px; font-weight: 700; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;
+  }
+  .empty-inline { font-size: 12.5px; color: var(--ink-muted); padding: 10px 2px; }
+
+  /* radar */
+  .radar-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .radar-wrap svg { width: 100%; height: auto; max-width: 260px; }
+  .radar-wrap.full svg { max-width: 380px; }
+  .radar-axis-label { font-size: 8.5px; fill: var(--ink-muted); }
+  details.radar-table summary { font-size: 11px; color: var(--cyan); cursor: pointer; }
+  details.radar-table table, table.data-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 11.5px; }
+  details.radar-table td, table.data-table td, table.data-table th { padding: 6px 8px; border-bottom: 1px solid var(--border); color: var(--ink-soft); text-align: left; }
+  details.radar-table td:last-child { text-align: right; color: var(--ink-muted); }
+  table.data-table th { color: var(--ink-muted); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+  table.data-table { overflow-x: auto; display: block; }
+  table.data-table thead, table.data-table tbody { display: table; width: 100%; table-layout: fixed; }
+
+  /* mock exam */
+  .exam-row { display: flex; align-items: center; gap: 16px; }
+  .exam-stat-label { font-size: 10.5px; color: var(--ink-muted); margin: 0 0 3px; }
+  .exam-stat-value { font-size: 20px; margin: 0; color: var(--ink); }
+  .exam-stat-value small { font-size: 12px; color: var(--ink-muted); }
+  .stat-tri { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 16px; }
+  .stat-tri > div { background: var(--panel); padding: 14px 16px; }
+
+  /* path view */
+  .path-list { display: flex; flex-direction: column; }
+  .path-row { display: grid; grid-template-columns: 34px 1fr; gap: 14px; }
+  .path-rail { display: flex; flex-direction: column; align-items: center; }
+  .path-rail .line { width: 2px; flex: 1; background: var(--border); }
+  .path-rail .line.done { background: var(--good); }
+  .path-body { padding-bottom: 22px; }
+  .path-name { font-size: 14px; font-weight: 600; margin: 0 0 2px; }
+  .path-meta { font-size: 11.5px; color: var(--ink-muted); margin: 2px 0 6px; }
+  .path-services { font-size: 12px; color: var(--ink-soft); margin: 0 0 8px; }
+
+  /* pills */
+  .pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
+    padding: 3px 9px;
+  }
+  .pill-muted   { background: rgba(255,255,255,0.05); color: var(--ink-muted); border: 1px solid var(--border); }
+  .pill-warn    { background: var(--warn-soft); color: var(--warn); }
+  .pill-good    { background: var(--good-soft); color: var(--good); }
+  .pill-master  { background: var(--master-soft); color: var(--master); }
+  .pill-crit    { background: var(--crit-soft); color: var(--crit); }
+
+  /* timeline (notes) */
+  .timeline { border-left: 1px solid var(--border); padding-left: 22px; display: flex; flex-direction: column; gap: 18px; }
+  .quest-entry { position: relative; }
+  .quest-entry::before {
+    content: ""; position: absolute; left: -27px; top: 5px;
+    width: 8px; height: 8px; background: var(--panel);
+    border: 2px solid var(--cyan); box-shadow: 0 0 6px rgba(70,219,201,0.5);
+    transform: rotate(45deg);
+  }
+  .quest-entry-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .quest-title { font-weight: 600; font-size: 14px; color: var(--ink); }
+  .quest-date { font-size: 11.5px; color: var(--ink-muted); font-family: ui-monospace, Consolas, monospace; }
+  .quest-meta { margin-top: 7px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .chip-sm {
+    font-size: 11px; color: var(--ink-soft); background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border); padding: 2px 9px;
+  }
+  .quest-next { margin-top: 7px; font-size: 12.5px; color: var(--ink-muted); }
+  .quest-next b { color: var(--ink-soft); font-weight: 600; }
+  .quest-entry a.dl { font-size: 11px; margin-top: 6px; display: inline-block; }
+
+  /* achievements full */
+  .ach-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .ach-grid.full { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+  .ach-tile {
+    aspect-ratio: 1; border: 1px solid var(--border); display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 4px; text-align: center; padding: 6px 4px;
+  }
+  .ach-grid.full .ach-tile { aspect-ratio: auto; padding: 16px 12px; gap: 6px; }
+  .ach-tile .g { font-size: 18px; filter: grayscale(1); opacity: 0.35; }
+  .ach-grid.full .ach-tile .g { font-size: 24px; }
+  .ach-tile.unlocked { border-color: var(--border-hi); background: var(--accent-dim); }
+  .ach-tile.unlocked .g { filter: none; opacity: 1; }
+  .ach-tile .t { font-size: 8.5px; color: var(--ink-muted); line-height: 1.3; }
+  .ach-grid.full .ach-tile .t { font-size: 12px; font-weight: 600; color: var(--ink-soft); }
+  .ach-tile.unlocked .t { color: var(--ink-soft); }
+  .ach-tile .d { font-size: 10.5px; color: var(--ink-muted); margin-top: 2px; }
+
+  /* resources */
+  .resource-list { display: flex; flex-direction: column; gap: 10px; }
+  .resource-item {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    border: 1px solid var(--border); background: var(--panel); padding: 14px 18px;
+  }
+  .resource-item .l { font-size: 13.5px; font-weight: 600; color: var(--ink); }
+  .resource-item .s { font-size: 11.5px; color: var(--ink-muted); margin-top: 2px; }
+
+  /* settings */
+  .settings-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .settings-row:last-child { border-bottom: none; }
+  .settings-row .l { font-size: 12.5px; color: var(--ink-soft); }
+  .settings-row .v { font-size: 12px; color: var(--ink-muted); font-family: ui-monospace, Consolas, monospace; }
+
+  /* rail */
+  .rail { border-left: 1px solid var(--border); padding: 22px 18px 40px; background: var(--panel); }
+  .rail .panel-box { padding: 16px 16px; }
+  .explorer-card { display: flex; align-items: center; gap: 12px; }
+  .explorer-badge {
+    width: 46px; height: 46px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center;
+    font-size: 20px; background: radial-gradient(circle at 35% 30%, var(--cyan-dim), var(--accent-dim));
+    border: 1px solid var(--border-hi);
+  }
+  .explorer-title { font-size: 13px; font-weight: 600; margin: 0; color: var(--ink); }
+  .explorer-sub { font-size: 11px; color: var(--ink-muted); margin: 3px 0 0; }
+
+  .week-bars { display: flex; align-items: flex-end; gap: 6px; height: 64px; margin-top: 14px; }
+  .week-bar { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; height: 100%; }
+  .week-bar .bar { width: 100%; background: rgba(255,255,255,0.06); position: relative; min-height: 3px; }
+  .week-bar .bar > span { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(180deg, var(--cyan), var(--accent)); }
+  .week-bar .lbl { font-size: 9px; color: var(--ink-muted); }
+
+  .activity-list { display: flex; flex-direction: column; gap: 10px; }
+  .activity-item { display: flex; gap: 9px; align-items: flex-start; }
+  .activity-item .g { font-size: 13px; flex: none; }
+  .activity-item .txt { font-size: 11.5px; color: var(--ink-soft); line-height: 1.4; }
+  .activity-item .dt { font-size: 10px; color: var(--ink-muted); }
+
+  /* goal banner */
+  .goal-banner {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    border: 1px solid var(--border-hi); padding: 16px 22px;
+    background: linear-gradient(90deg, var(--accent-dim), transparent 70%), var(--panel);
+  }
+  .goal-banner .label { font-size: 10.5px; letter-spacing: 0.08em; color: var(--accent); text-transform: uppercase; margin: 0 0 4px; }
+  .goal-banner .text { font-size: 14.5px; color: var(--ink); margin: 0; }
+  .goal-banner a {
+    text-decoration: none; font-size: 12.5px; font-weight: 700; color: var(--void);
+    background: var(--accent); padding: 9px 18px; white-space: nowrap;
+  }
+
+  footer.legal { margin-top: 22px; font-size: 11px; color: var(--ink-muted); line-height: 1.7; max-width: 720px; }
+  footer.legal a { color: var(--cyan); }
+</style>
+
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="mark">🧭</div>
+      <div class="name">AWS<b>SAA QUEST</b></div>
+    </div>
+    <nav class="navlist" id="navlist">
+      <button class="active" data-view="dashboard">🏠 ダッシュボード</button>
+      <button data-view="quests">🗺️ クエスト一覧</button>
+      <button data-view="path">📈 学習パス</button>
+      <button data-view="exam">⚔️ 模擬試験</button>
+      <button data-view="weakpoint">🕸️ 弱点分析</button>
+      <button data-view="notes">📝 ノート</button>
+      <button data-view="achievements">🏅 アチーブメント</button>
+      <button data-view="resources">📚 リソース</button>
+      <button data-view="settings">⚙️ 設定</button>
+    </nav>
+    <p class="sidebar-quote">"小さな一歩の積み重ねが、大きなクラウドの力になる。"</p>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <h1>おかえりなさい。今日も一歩進みましょう。</h1>
+      <div class="status-cluster" id="statusCluster">
+        <span class="chip offline" id="connChip"><span class="dot"></span> <span id="connChipText">Notion 接続確認中…</span></span>
+      </div>
+    </div>
+
+    <div id="connBanner"></div>
+
+    <div class="hero panel">
+      <svg viewBox="0 0 800 200" preserveAspectRatio="xMidYMid slice">
+        <defs>
+          <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#1a1030"/>
+            <stop offset="45%" stop-color="#3a2044"/>
+            <stop offset="75%" stop-color="#a2542f"/>
+            <stop offset="100%" stop-color="#e8b34a"/>
+          </linearGradient>
+          <linearGradient id="m1" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#241a33"/><stop offset="100%" stop-color="#160f22"/>
+          </linearGradient>
+        </defs>
+        <rect width="800" height="200" fill="url(#sky)"/>
+        <circle cx="120" cy="55" r="1.4" fill="#fff" opacity="0.7"/>
+        <circle cx="200" cy="30" r="1" fill="#fff" opacity="0.5"/>
+        <circle cx="640" cy="40" r="1.3" fill="#fff" opacity="0.6"/>
+        <circle cx="700" cy="70" r="1" fill="#fff" opacity="0.4"/>
+        <circle cx="60" cy="90" r="1" fill="#fff" opacity="0.5"/>
+        <polygon points="0,200 0,120 130,45 260,120 260,200" fill="#2a1c3a" opacity="0.55"/>
+        <polygon points="540,200 540,110 660,35 800,110 800,200" fill="#2a1c3a" opacity="0.55"/>
+        <polygon points="150,200 150,90 340,10 400,55 470,15 620,90 620,200" fill="url(#m1)"/>
+        <polygon points="340,10 400,55 360,58" fill="#3a2748"/>
+        <path d="M340,10 v16 l14,-4 -14,-6" fill="#e8b34a"/>
+        <polygon points="0,200 0,170 90,150 180,175 280,150 400,180 520,150 640,172 720,150 800,168 800,200" fill="#0e0a17"/>
+      </svg>
+      <div class="hero-overlay">
+        <div class="hero-top">
+          <div>
+            <p class="hero-title display">AWS SAA QUEST</p>
+            <p class="hero-sub">クラウドの知識を冒険し、スキルを極めよう</p>
+          </div>
+          <span class="hero-chip">🔥 連続学習 <b class="mono" id="heroStreak">–</b> 日</span>
+        </div>
+        <span class="hero-here" id="heroHere">現在地を計算中…</span>
+      </div>
+    </div>
+
+    <!-- ============ VIEW: dashboard ============ -->
+    <section class="view" id="view-dashboard">
+      <section class="panel">
+        <div class="panel-box">
+          <div class="panel-head">
+            <h2 class="panel-title">🧭 冒険の進捗</h2>
+            <span class="panel-note" id="worldMeta">world_map :: --</span>
+          </div>
+          <div class="progress-body">
+            <div class="ring-wrap">
+              <svg width="104" height="104" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="8"/>
+                <circle id="progressRing" cx="50" cy="50" r="40" fill="none" stroke="var(--accent)" stroke-width="8"
+                        stroke-linecap="round" stroke-dasharray="251.2" stroke-dashoffset="251.2"
+                        transform="rotate(-90 50 50)" style="transition: stroke-dashoffset 1s ease-out"/>
+                <text id="progressRingText" x="50" y="55" text-anchor="middle" class="ring-value mono" fill="var(--ink)">–</text>
+              </svg>
+              <span class="ring-caption">Worlds Cleared</span>
+            </div>
+            <div class="stepper">
+              <div class="stepper-row" id="stepperRow"></div>
+              <p class="step-caption" id="stepperCaption">読み込み中…</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2 class="panel-title">🚩 おすすめクエスト</h2>
+          <span class="panel-note">未到達 / 探索中の World から</span>
+        </div>
+        <div class="quest-cards" id="questCards"><p class="empty-inline">読み込み中…</p></div>
+      </section>
+
+      <div class="cols-2">
+        <section class="panel">
+          <div class="panel-box">
+            <div class="panel-head">
+              <h2 class="panel-title">🕸️ 弱点分析</h2>
+              <span class="panel-note">Understanding 9軸</span>
+            </div>
+            <div class="radar-wrap">
+              <svg id="radarSvg" viewBox="0 0 220 220"></svg>
+              <details class="radar-table">
+                <summary>表で見る</summary>
+                <table><tbody id="radarTableBody"></tbody></table>
+              </details>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-box">
+            <div class="panel-head">
+              <h2 class="panel-title">🏆 模擬試験</h2>
+              <span class="panel-note" id="battleMeta">battle_log :: --</span>
+            </div>
+            <div id="examBody"><p class="empty-inline">読み込み中…</p></div>
+          </div>
+        </section>
+      </div>
+
+      <section class="panel goal-banner">
+        <div>
+          <p class="label">Next Goal</p>
+          <p class="text" id="goalText">読み込み中…</p>
+        </div>
+        <a id="goalLink" href="https://app.notion.com/p/3bd29672672f813ba8a8e0e733c612f5">Notionを開く →</a>
+      </section>
+    </section>
+
+    <!-- ============ VIEW: quests ============ -->
+    <section class="view" id="view-quests" hidden>
+      <div class="view-head"><h2>🗺️ クエスト一覧</h2><p>World Map 全9件</p></div>
+      <div class="quest-cards" id="questsFullGrid"></div>
+    </section>
+
+    <!-- ============ VIEW: path ============ -->
+    <section class="view" id="view-path" hidden>
+      <div class="view-head"><h2>📈 学習パス</h2><p>WORLD 1 → 9 のロードマップ</p></div>
+      <div class="panel-box path-list" id="pathList"></div>
+    </section>
+
+    <!-- ============ VIEW: exam ============ -->
+    <section class="view" id="view-exam" hidden>
+      <div class="view-head"><h2>⚔️ 模擬試験</h2><p>Battle Log 全件</p></div>
+      <div class="stat-tri" id="examStatTri"></div>
+      <div class="panel-box"><table class="data-table"><thead><tr><th>Battle</th><th>Type</th><th>Date</th><th>Result</th><th>Cause</th><th>Retry</th></tr></thead><tbody id="examFullBody"></tbody></table></div>
+    </section>
+
+    <!-- ============ VIEW: weakpoint ============ -->
+    <section class="view" id="view-weakpoint" hidden>
+      <div class="view-head"><h2>🕸️ 弱点分析</h2><p>Understanding を9軸で可視化(World Mapのライブ値)</p></div>
+      <div class="panel-box">
+        <div class="radar-wrap full">
+          <svg id="radarSvgFull" viewBox="0 0 220 220"></svg>
+          <table class="data-table" style="max-width:420px"><thead><tr><th>World</th><th>Understanding</th></tr></thead><tbody id="radarTableFullBody"></tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ VIEW: notes ============ -->
+    <section class="view" id="view-notes" hidden>
+      <div class="view-head"><h2>📝 ノート</h2><p>Quest Log 全件(学習記録)</p></div>
+      <div class="panel-box"><div class="timeline" id="notesTimeline"></div></div>
+    </section>
+
+    <!-- ============ VIEW: achievements ============ -->
+    <section class="view" id="view-achievements" hidden>
+      <div class="view-head"><h2>🏅 アチーブメント</h2><p>実データから自動判定(捏造なし)</p></div>
+      <div class="ach-grid full" id="achFullGrid"></div>
+    </section>
+
+    <!-- ============ VIEW: resources ============ -->
+    <section class="view" id="view-resources" hidden>
+      <div class="view-head"><h2>📚 リソース</h2><p>管理元のNotionへの直リンク</p></div>
+      <div class="resource-list">
+        <div class="resource-item"><div><div class="l">⚔️ AWS SAA QUEST(トップページ)</div><div class="s">ルール・四天王・全DBへのリンク</div></div><a href="https://app.notion.com/p/3bd29672672f813ba8a8e0e733c612f5" target="_blank" rel="noopener">開く →</a></div>
+        <div class="resource-item"><div><div class="l">🗺️ World Map DB</div><div class="s">9つのWorldの進捗管理</div></div><a href="https://app.notion.com/p/1819b9b208e244b8b2a02f3360f18e44" target="_blank" rel="noopener">開く →</a></div>
+        <div class="resource-item"><div><div class="l">📜 Quest Log DB</div><div class="s">学習ログ(3分以内でセーブ)</div></div><a href="https://app.notion.com/p/93e9cd83048c4741b9b0e2df83ac6d9c" target="_blank" rel="noopener">開く →</a></div>
+        <div class="resource-item"><div><div class="l">⚔️ Battle Log DB</div><div class="s">問題演習・模擬試験の記録</div></div><a href="https://app.notion.com/p/439a2a5ed5404dff96449d18f2601adb" target="_blank" rel="noopener">開く →</a></div>
+      </div>
+    </section>
+
+    <!-- ============ VIEW: settings ============ -->
+    <section class="view" id="view-settings" hidden>
+      <div class="view-head"><h2>⚙️ 設定</h2><p>Notion連携の状態</p></div>
+      <div class="panel-box">
+        <div class="settings-row"><span class="l">コネクタ</span><span class="v" id="setConnector">--</span></div>
+        <div class="settings-row"><span class="l">World Map</span><span class="v" id="setWorld">--</span></div>
+        <div class="settings-row"><span class="l">Quest Log</span><span class="v" id="setQuest">--</span></div>
+        <div class="settings-row"><span class="l">Battle Log</span><span class="v" id="setBattle">--</span></div>
+        <div class="settings-row"><span class="l">手動更新</span><button class="btn-mini" id="refreshBtn">🔄 今すぐ更新</button></div>
+      </div>
+      <p class="empty-inline" style="margin-top:10px">ソースはGitHubリポジトリ(dashboard/)でも管理しています。</p>
+    </section>
+
+    <footer class="legal">
+      このダッシュボードは <a href="https://app.notion.com/p/3bd29672672f813ba8a8e0e733c612f5">Notion の AWS SAA QUEST</a> をこの端末から直接読み込んで表示しています(閲覧者ご自身のNotion連携が必要です)。接続できない場合は最後に取得できたスナップショットを表示します。
+    </footer>
+  </main>
+
+  <aside class="rail">
+    <section class="panel">
+      <div class="panel-box">
+        <div class="explorer-card">
+          <div class="explorer-badge" id="rankBadge">🧭</div>
+          <div>
+            <p class="explorer-title" id="rankTitle">見習い探検家</p>
+            <p class="explorer-sub" id="rankSub">Quest 0 ・ Battle 0</p>
+          </div>
+        </div>
+        <div class="week-bars" id="weekBars"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-box">
+        <div class="panel-head"><h2 class="panel-title">🏅 アチーブメント</h2></div>
+        <div class="ach-grid" id="achGrid"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-box">
+        <div class="panel-head"><h2 class="panel-title">📜 最近のアクティビティ</h2></div>
+        <div class="activity-list" id="activityList"><p class="empty-inline">読み込み中…</p></div>
+      </div>
+    </section>
+  </aside>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var DS = {
+    world:  "collection://60617956-829a-49f4-87cf-86fd890b0afd",
+    quest:  "collection://d59621ab-ab8f-485b-814e-450608c64627",
+    battle: "collection://5ca7f57e-8a4c-4ca7-ad4e-c2d64a5f272d"
+  };
+  var QUERIES = {
+    world:  "SELECT * FROM \"" + DS.world  + "\" ORDER BY \"WORLD\" ASC",
+    quest:  "SELECT * FROM \"" + DS.quest  + "\" ORDER BY \"date:Date:start\" DESC",
+    battle: "SELECT * FROM \"" + DS.battle + "\" WHERE \"Battle\" IS NOT NULL ORDER BY \"date:Date:start\" DESC"
+  };
+
+  var CAT_LABEL = {
+    "基礎・統制": "基礎", "Compute": "Compute", "Storage": "Storage", "Network": "Network",
+    "Database": "DB", "Integration": "連携", "Security": "Security", "Resilience": "Resilience", "Cost": "Cost"
+  };
+  var U_SCORE = { "❓ よく分からない": 0, "🌱 聞けば分かる": 1, "💡 自分で説明できる": 2, "⚔️ 問題で判断できる": 3 };
+
+  // Real snapshot captured directly from Notion at build time — used for first paint
+  // and as the offline fallback. Live data (if the viewer's Notion connector is
+  // available) replaces these arrays automatically; no manual edits needed here.
+  var state = {
+    world: [
+      {WORLD:1,Area:"🏕️ AWS基礎地方",Category:"基礎・統制","Key Services":"IAM / Organizations / CloudWatch / CloudTrail / Well-Architected",Status:"⬜ 未到達",Understanding:"❓ よく分からない","Next Mission":null,url:"https://app.notion.com/3bd29672672f81fb93f9eda0ace2c8cc"},
+      {WORLD:2,Area:"🏰 コンピュート王国",Category:"Compute","Key Services":"EC2 / Auto Scaling / ELB / Lambda / ECS / Fargate",Status:"⬜ 未到達",Understanding:"❓ よく分からない","Next Mission":null,url:"https://app.notion.com/3bd29672672f81bc900fe134ca0ccc0f"},
+      {WORLD:3,Area:"🌊 ストレージ諸島",Category:"Storage","Key Services":"S3 / EBS / EFS / FSx / Glacier / Backup",Status:"⬜ 未到達",Understanding:"❓ よく分からない","Next Mission":null,url:"https://app.notion.com/3bd29672672f81e29e0ac22328337aa7"},
+      {WORLD:4,Area:"🕸️ VPC迷宮",Category:"Network","Key Services":"VPC / Subnet / Route / NAT / Endpoint / VPN / Direct Connect",Status:"⬜ 未到達",Understanding:"❓ よく分からない","Next Mission":null,url:"https://app.notion.com/3bd29672672f81b0b49fd091afc7317e"},
+      {WORLD:5,Area:"🏛️ データベース都市",Category:"Database","Key Services":"RDS / Aurora / DynamoDB / ElastiCache / Redshift",Status:"⬜ 未到達",Understanding:"❓ よく分からない","Next Mission":null,url:"https://app.notion.com/3bd29672672f812494e6e9ff25393943"},
+      {WORLD:6,Area:"📨 疎結合の谷",Category:"Integration","Key Services":"SQS / SNS / EventBridge / Step Functions / API Gateway",Status:"⬜ 未到達",Understanding:"❓ よく分からない","Next Mission":null,url:"https://app.notion.com/3bd29672672f818d9de5dda61556b3ba"},
+      {WORLD:7,Area:"🛡️ セキュリティ城塞",Category:"Security","Key Services":"IAM / KMS / Secrets Manager / WAF / Shield / Cognito",Status:"⬜ 未到達",Understanding:"❓ よく分からない","Next Mission":null,url:"https://app.notion.com/3bd29672672f8162969bef9189e87741"},
+      {WORLD:8,Area:"🌐 レジリエンス山脈",Category:"Resilience","Key Services":"Multi-AZ / ELB / Auto Scaling / Route 53 / CloudFront",Status:"⬜ 未到達",Understanding:"❓ よく分からない","Next Mission":null,url:"https://app.notion.com/3bd29672672f81b69ed2dff1ce07e5e9"},
+      {WORLD:9,Area:"💰 コスト鉱山",Category:"Cost","Key Services":"Savings Plans / EC2料金 / S3クラス / Cost Explorer",Status:"⬜ 未到達",Understanding:"❓ よく分からない","Next Mission":null,url:"https://app.notion.com/3bd29672672f81d1819cfc930274e385"}
+    ],
+    quest: [
+      {Quest:"SAA QUEST 再始動","date:Date:start":"2026-08-15",Method:"[\"🎥 Udemy\"]",Result:null,"Next Quest":"Udemy 14%地点からCONTINUE",url:"https://app.notion.com/3bd29672672f81d4b308e7d5a5c97fdb"}
+    ],
+    battle: [],
+    meta: { world: {live:false,updatedAt:null}, quest: {live:false,updatedAt:null}, battle: {live:false,updatedAt:null} },
+    snapshotDate: "2026-08-15"
+  };
+
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+    return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];
+  }); }
+  function parseArr(v) { if (Array.isArray(v)) return v; if (typeof v !== "string") return []; try { var p = JSON.parse(v); return Array.isArray(p) ? p : []; } catch (e) { return []; } }
+  // notion-query-data-sources returns page URLs without the "/p/" segment
+  // (e.g. app.notion.com/<id> instead of app.notion.com/p/<id>), which 404s
+  // until Notion's own redirect kicks in. Normalize before linking out.
+  function fixNotionUrl(u) {
+    if (!u) return null;
+    return /app\.notion\.com\/(?!p\/)/.test(u) ? u.replace("app.notion.com/", "app.notion.com/p/") : u;
+  }
+  function todayISO() { var d = new Date(); return d.toISOString().slice(0,10); }
+  function addDays(iso, n) { var d = new Date(iso + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0,10); }
+  function fmtAgo(ts) {
+    if (!ts) return "--";
+    var s = Math.round((Date.now() - ts) / 1000);
+    if (s < 5) return "たった今";
+    if (s < 60) return s + "秒前";
+    if (s < 3600) return Math.floor(s/60) + "分前";
+    return Math.floor(s/3600) + "時間前";
+  }
+
+  // ---------- derived stats ----------
+  function computeStreak(quest) {
+    var dates = Array.from(new Set(quest.map(function (q) { return q["date:Date:start"]; }).filter(Boolean))).sort().reverse();
+    if (!dates.length) return 0;
+    var streak = 1, cur = dates[0];
+    for (var i = 1; i < dates.length; i++) {
+      if (addDays(dates[i], 1) === cur) { streak++; cur = dates[i]; } else break;
+    }
+    return streak;
+  }
+  function currentWorld(world) {
+    var sorted = world.slice().sort(function (a,b) { return a.WORLD - b.WORLD; });
+    for (var i = 0; i < sorted.length; i++) {
+      if (sorted[i].Status !== "🟢 攻略済" && sorted[i].Status !== "⭐ MASTER") return sorted[i];
+    }
+    return null;
+  }
+  function rankTitle(clearedCount) {
+    if (clearedCount >= 9) return {icon:"👑", title:"クラウド賢者"};
+    if (clearedCount >= 6) return {icon:"🛡️", title:"ソリューションアーキテクト見習い"};
+    if (clearedCount >= 3) return {icon:"⚔️", title:"駆け出し冒険者"};
+    if (clearedCount >= 1) return {icon:"🧭", title:"探索者"};
+    return {icon:"🧭", title:"見習い探検家"};
+  }
+  function computeAchievements(world, quest, battle, streak) {
+    return [
+      {icon:"🧭", label:"初めてのクエスト", desc:"Quest Logを1件記録する", unlocked: quest.length >= 1},
+      {icon:"🔥", label:"3日連続学習", desc:"3日連続でQuest Logを記録する", unlocked: streak >= 3},
+      {icon:"⚔️", label:"初勝利", desc:"Battle LogでWINを1件記録する", unlocked: battle.some(function (b) { return b.Result === "⭕ WIN"; })},
+      {icon:"🗺️", label:"全World着手", desc:"9つのWorldすべてを未到達から進める", unlocked: world.length > 0 && world.every(function (w) { return w.Status !== "⬜ 未到達"; })},
+      {icon:"👑", label:"全Worldマスター", desc:"9つのWorldすべてを⭐MASTERにする", unlocked: world.length > 0 && world.every(function (w) { return w.Status === "⭐ MASTER"; })},
+      {icon:"🏆", label:"模試クリア", desc:"模擬試験/FINAL BOSSでWINを記録する", unlocked: battle.some(function (b) { return (b.Type === "🏆 模擬試験" || b.Type === "🐉 FINAL BOSS") && b.Result === "⭕ WIN"; })}
+    ];
+  }
+
+  // ---------- view switching ----------
+  var VIEWS = ["dashboard","quests","path","exam","weakpoint","notes","achievements","resources","settings"];
+  function showView(name) {
+    VIEWS.forEach(function (v) {
+      var el = $("view-" + v);
+      if (el) el.hidden = (v !== name);
+    });
+    document.querySelectorAll("#navlist button").forEach(function (b) {
+      b.classList.toggle("active", b.getAttribute("data-view") === name);
+    });
+  }
+  document.getElementById("navlist").addEventListener("click", function (e) {
+    var btn = e.target.closest("button[data-view]");
+    if (btn) showView(btn.getAttribute("data-view"));
+  });
+
+  // ---------- render ----------
+  function render() {
+    var world = state.world, quest = state.quest, battle = state.battle;
+    var cleared = world.filter(function (w) { return w.Status === "🟢 攻略済" || w.Status === "⭐ MASTER"; }).length;
+    var pct = world.length ? cleared / world.length : 0;
+    var sorted = world.slice().sort(function (a,b) { return a.WORLD - b.WORLD; });
+    var cw = currentWorld(world);
+    var streak = computeStreak(quest);
+
+    // ring
+    var C = 251.2;
+    $("progressRing").style.strokeDashoffset = String(C * (1 - pct));
+    $("progressRingText").textContent = cleared + "/" + world.length;
+
+    // stepper
+    var stepHtml = "";
+    sorted.forEach(function (w, i) {
+      var done = w.Status === "🟢 攻略済" || w.Status === "⭐ MASTER";
+      var active = cw && w.WORLD === cw.WORLD;
+      stepHtml += '<div class="step-node ' + (done ? "done" : (active ? "active" : "")) + '" title="' + esc(w.Area) + '">' + (done ? "✓" : w.WORLD) + '</div>';
+      if (i < sorted.length - 1) stepHtml += '<div class="step-line ' + (done ? "done" : "") + '"></div>';
+    });
+    $("stepperRow").innerHTML = stepHtml;
+    $("stepperCaption").innerHTML = cw ? "現在地: <b>" + esc(cw.Area) + "</b>" : "<b>全World到達済み！</b> お疲れさまでした。";
+    $("heroHere").textContent = cw ? "📍 現在地: " + cw.Area : "📍 全World到達済み";
+    $("heroStreak").textContent = streak;
+
+    // quest cards (dashboard recommend, top 3)
+    var candidates = sorted.filter(function (w) { return w.Status !== "🟢 攻略済" && w.Status !== "⭐ MASTER"; });
+    candidates.sort(function (a,b) {
+      var rank = function (w) { return w.Status === "🟡 探索中" ? 0 : 1; };
+      return rank(a) - rank(b) || a.WORLD - b.WORLD;
+    });
+    var top3 = candidates.slice(0, 3);
+    $("questCards").innerHTML = top3.length ? top3.map(worldCardHtml).join("") :
+      '<p class="empty-inline">🎉 すべてのWorldに到達済み。四天王・模擬試験で仕上げよう。</p>';
+
+    // quests view: full grid, all 9
+    $("questsFullGrid").innerHTML = sorted.map(worldCardHtml).join("");
+
+    // path view
+    $("pathList").innerHTML = sorted.map(function (w, i) {
+      var done = w.Status === "🟢 攻略済" || w.Status === "⭐ MASTER";
+      var active = cw && w.WORLD === cw.WORLD;
+      var uScore = U_SCORE[w.Understanding] || 0;
+      return '<div class="path-row">' +
+        '<div class="path-rail"><div class="step-node ' + (done ? "done" : (active ? "active" : "")) + '">' + (done ? "✓" : w.WORLD) + '</div>' +
+          (i < sorted.length - 1 ? '<div class="line ' + (done ? "done" : "") + '"></div>' : '') + '</div>' +
+        '<div class="path-body">' +
+          '<p class="path-name">' + esc(w.Area) + '</p>' +
+          '<p class="path-meta">' + esc(CAT_LABEL[w.Category] || w.Category || "") + ' ・ ' + esc(w.Status) + ' ・ ' + esc(w.Understanding) + '</p>' +
+          '<p class="path-services">' + esc(w["Key Services"] || "") + '</p>' +
+          (w["Next Mission"] ? '<p class="path-meta">Next: ' + esc(w["Next Mission"]) + '</p>' : '') +
+          (w.url ? '<a class="dl" href="' + esc(fixNotionUrl(w.url)) + '" target="_blank" rel="noopener">Notionで開く →</a>' : '') +
+        '</div></div>';
+    }).join("");
+
+    // radar (dashboard compact + weakpoint full)
+    renderRadar(sorted, "radarSvg", "radarTableBody");
+    renderRadar(sorted, "radarSvgFull", "radarTableFullBody");
+
+    // exam / battle — dashboard mini
+    var boss = battle.filter(function (b) { return b.Type === "🏆 模擬試験" || b.Type === "🐉 FINAL BOSS"; });
+    boss.sort(function (a,b) { return (b["date:Date:start"]||"").localeCompare(a["date:Date:start"]||""); });
+    if (!boss.length) {
+      $("examBody").innerHTML = '<p class="empty-inline">まだ模試の記録なし。Phase 3(ボスラッシュ)で使おう。</p>';
+    } else {
+      var latest = boss[0];
+      var winRate = Math.round(boss.filter(function (b) { return b.Result === "⭕ WIN"; }).length / boss.length * 100);
+      $("examBody").innerHTML =
+        '<div class="exam-row">' +
+          '<div><svg width="76" height="76" viewBox="0 0 100 100">' +
+            '<circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="9"/>' +
+            '<circle cx="50" cy="50" r="40" fill="none" stroke="var(--cyan)" stroke-width="9" stroke-linecap="round" ' +
+              'stroke-dasharray="251.2" stroke-dashoffset="' + (251.2*(1-winRate/100)) + '" transform="rotate(-90 50 50)"/>' +
+            '<text x="50" y="56" text-anchor="middle" class="mono" font-size="18" fill="var(--ink)">' + winRate + '%</text>' +
+          '</svg></div>' +
+          '<div>' +
+            '<p class="exam-stat-label">最新の結果</p>' +
+            '<p class="exam-stat-value">' + esc(latest.Result || "–") + (latest.Score ? '<small> / Score ' + esc(latest.Score) + '</small>' : '') + '</p>' +
+            '<p class="exam-stat-label" style="margin-top:8px">' + esc(latest.Battle || "") + ' ・ ' + esc(latest["date:Date:start"] || "") + '</p>' +
+          '</div>' +
+        '</div>';
+    }
+
+    // exam view: full table + stats
+    var winCount = battle.filter(function (b) { return b.Result === "⭕ WIN"; }).length;
+    var causeCounts = {};
+    battle.forEach(function (b) { if (b.Cause) causeCounts[b.Cause] = (causeCounts[b.Cause]||0)+1; });
+    var topCause = Object.keys(causeCounts).sort(function (a,b) { return causeCounts[b]-causeCounts[a]; })[0];
+    $("examStatTri").innerHTML =
+      '<div><p class="exam-stat-label">総戦闘数</p><p class="exam-stat-value mono">' + battle.length + '</p></div>' +
+      '<div><p class="exam-stat-label">勝率</p><p class="exam-stat-value mono">' + (battle.length ? Math.round(winCount/battle.length*100) : 0) + '%</p></div>' +
+      '<div><p class="exam-stat-label">最多の敗因</p><p class="exam-stat-value" style="font-size:14px">' + (topCause ? esc(topCause) : '–') + '</p></div>';
+    $("examFullBody").innerHTML = battle.length ? battle.map(function (b) {
+      return '<tr><td>' + esc(b.Battle||"") + '</td><td>' + esc(b.Type||"") + '</td><td class="mono">' + esc(b["date:Date:start"]||"") + '</td>' +
+        '<td>' + esc(b.Result||"") + '</td><td>' + esc(b.Cause||"") + '</td><td>' + (b.Retry === "__YES__" ? "✓" : "") + '</td></tr>';
+    }).join("") : '<tr><td colspan="6" class="empty-inline">まだ記録なし</td></tr>';
+
+    // notes view: full quest log timeline
+    $("notesTimeline").innerHTML = quest.length ? quest.slice().sort(function (a,b) {
+      return (b["date:Date:start"]||"").localeCompare(a["date:Date:start"]||"");
+    }).map(function (q) {
+      var methods = parseArr(q.Method);
+      return '<div class="quest-entry">' +
+        '<div class="quest-entry-head"><span class="quest-title">' + esc(q.Quest||"") + '</span><span class="quest-date">' + esc(q["date:Date:start"]||"") + '</span></div>' +
+        '<div class="quest-meta">' + methods.map(function (m) { return '<span class="chip-sm">' + esc(m) + '</span>'; }).join("") +
+          '<span class="chip-sm">Result: ' + esc(q.Result || "未設定") + '</span></div>' +
+        (q["Next Quest"] ? '<p class="quest-next">Next Quest: <b>' + esc(q["Next Quest"]) + '</b></p>' : '') +
+        (q.url ? '<a class="dl" href="' + esc(fixNotionUrl(q.url)) + '" target="_blank" rel="noopener">Notionで開く →</a>' : '') +
+      '</div>';
+    }).join("") : '<p class="empty-inline">まだ記録なし。</p>';
+
+    // rank / explorer
+    var rank = rankTitle(cleared);
+    $("rankBadge").textContent = rank.icon;
+    $("rankTitle").textContent = rank.title;
+    $("rankSub").textContent = "Quest " + quest.length + " ・ Battle " + battle.length;
+
+    // week bars (last 7 days, real Quest Log counts)
+    var today = todayISO();
+    var days = []; for (var i = 6; i >= 0; i--) days.push(addDays(today, -i));
+    var counts = days.map(function (d) { return quest.filter(function (q) { return q["date:Date:start"] === d; }).length; });
+    var maxC = Math.max.apply(null, counts.concat([1]));
+    $("weekBars").innerHTML = days.map(function (d, i) {
+      var h = Math.max(4, Math.round(counts[i] / maxC * 56));
+      var lbl = ["日","月","火","水","木","金","土"][new Date(d + "T00:00:00Z").getUTCDay()];
+      return '<div class="week-bar"><div class="bar" style="height:56px"><span style="height:' + h + 'px"></span></div><span class="lbl">' + lbl + '</span></div>';
+    }).join("");
+
+    // achievements (mini + full)
+    var achievements = computeAchievements(world, quest, battle, streak);
+    $("achGrid").innerHTML = achievements.map(function (a) {
+      return '<div class="ach-tile ' + (a.unlocked ? "unlocked" : "") + '"><span class="g">' + a.icon + '</span><span class="t">' + esc(a.label) + '</span></div>';
+    }).join("");
+    $("achFullGrid").innerHTML = achievements.map(function (a) {
+      return '<div class="ach-tile ' + (a.unlocked ? "unlocked" : "") + '"><span class="g">' + a.icon + '</span><span class="t">' + esc(a.label) + '</span><span class="d">' + esc(a.desc) + (a.unlocked ? " ・ 達成済み" : "") + '</span></div>';
+    }).join("");
+
+    // activity feed
+    var acts = [];
+    quest.forEach(function (q) { if (q["date:Date:start"]) acts.push({date:q["date:Date:start"], icon:"📜", text: (q.Quest || "Quest") + " を記録"}); });
+    battle.forEach(function (b) { if (b["date:Date:start"]) acts.push({date:b["date:Date:start"], icon: b.Result === "⭕ WIN" ? "⚔️" : "💀", text: (b.Battle || "戦闘") + (b.Result ? " ・ " + b.Result : "")}); });
+    acts.sort(function (a,b) { return b.date.localeCompare(a.date); });
+    $("activityList").innerHTML = acts.length ? acts.slice(0,6).map(function (a) {
+      return '<div class="activity-item"><span class="g">' + a.icon + '</span><div><div class="txt">' + esc(a.text) + '</div><div class="dt mono">' + esc(a.date) + '</div></div></div>';
+    }).join("") : '<p class="empty-inline">まだ記録なし。</p>';
+
+    // goal banner
+    if (cw) {
+      $("goalText").textContent = "「" + cw.Area + "」を探索して、Statusを🟡探索中に進めよう";
+      $("goalLink").href = fixNotionUrl(cw.url) || "https://app.notion.com/p/3bd29672672f813ba8a8e0e733c612f5";
+    } else if (!boss.length) {
+      $("goalText").textContent = "全World到達済み。模擬試験でFINAL BOSSに挑む準備をしよう";
+      $("goalLink").href = "https://app.notion.com/p/3bd29672672f813ba8a8e0e733c612f5";
+    } else {
+      $("goalText").textContent = "調子はどう？次のQuest Logを書いて記録を続けよう";
+      $("goalLink").href = "https://app.notion.com/p/3bd29672672f813ba8a8e0e733c612f5";
+    }
+
+    // per-source meta chips + settings view
+    $("worldMeta").textContent = "world_map :: " + (state.meta.world.live ? "live" : "snapshot " + state.snapshotDate);
+    $("battleMeta").textContent = "battle_log :: " + (state.meta.battle.live ? "live" : "snapshot " + state.snapshotDate);
+    $("setWorld").textContent  = (state.meta.world.live  ? "live ・ " + fmtAgo(state.meta.world.updatedAt)  : "snapshot " + state.snapshotDate);
+    $("setQuest").textContent  = (state.meta.quest.live  ? "live ・ " + fmtAgo(state.meta.quest.updatedAt)  : "snapshot " + state.snapshotDate);
+    $("setBattle").textContent = (state.meta.battle.live ? "live ・ " + fmtAgo(state.meta.battle.updatedAt) : "snapshot " + state.snapshotDate);
+  }
+
+  function worldCardHtml(w) {
+    var uScore = U_SCORE[w.Understanding] || 0;
+    var cls = w.Status === "🟡 探索中" ? "explore" : (w.Status === "🟢 攻略済" ? "done" : (w.Status === "⭐ MASTER" ? "master" : ""));
+    return '<div class="quest-card ' + cls + '">' +
+      '<div class="quest-card-top"><p class="quest-card-name">' + esc(w.Area) + '</p><span class="quest-card-cat">' + esc(CAT_LABEL[w.Category] || w.Category || "") + '</span></div>' +
+      '<p class="quest-card-services">' + esc(w["Key Services"] || "") + '</p>' +
+      '<div class="quest-card-bar"><span style="width:' + (uScore/3*100) + '%"></span></div>' +
+      '<div class="quest-card-foot"><span class="u">' + esc(w.Status) + ' / ' + esc(w.Understanding || "") + '</span>' +
+      (w.url ? '<a href="' + esc(fixNotionUrl(w.url)) + '" target="_blank" rel="noopener">Notionで開く →</a>' : '') +
+      '</div></div>';
+  }
+
+  function renderRadar(sortedWorld, svgId, tbodyId) {
+    var svgEl = $(svgId);
+    if (!svgEl) return;
+    var n = sortedWorld.length;
+    var cx = 110, cy = 108, R = 78;
+    var svg = '<g>';
+    for (var ring = 1; ring <= 3; ring++) {
+      var r = R * ring / 3, poly = [];
+      for (var i = 0; i < n; i++) {
+        var ang = -Math.PI/2 + i * 2 * Math.PI / n;
+        poly.push((cx + r*Math.cos(ang)) + "," + (cy + r*Math.sin(ang)));
+      }
+      svg += '<polygon points="' + poly.join(" ") + '" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>';
+    }
+    var dataPts = [];
+    sortedWorld.forEach(function (w, i) {
+      var score = U_SCORE[w.Understanding] || 0;
+      var ang = -Math.PI/2 + i * 2 * Math.PI / n;
+      var r = R * (score / 3);
+      dataPts.push((cx + r*Math.cos(ang)) + "," + (cy + r*Math.sin(ang)));
+      var lx = cx + (R+16)*Math.cos(ang), ly = cy + (R+16)*Math.sin(ang);
+      svg += '<line x1="' + cx + '" y1="' + cy + '" x2="' + (cx+R*Math.cos(ang)) + '" y2="' + (cy+R*Math.sin(ang)) + '" stroke="rgba(255,255,255,0.08)"/>';
+      svg += '<text x="' + lx + '" y="' + ly + '" text-anchor="middle" class="radar-axis-label">' + esc(CAT_LABEL[w.Category] || w.Category || "") + '</text>';
+    });
+    svg += '<polygon points="' + dataPts.join(" ") + '" fill="rgba(232,179,74,0.28)" stroke="var(--accent)" stroke-width="2"/>';
+    dataPts.forEach(function (p) { var xy = p.split(","); svg += '<circle cx="' + xy[0] + '" cy="' + xy[1] + '" r="2.5" fill="var(--accent)"/>'; });
+    svg += '</g>';
+    svgEl.innerHTML = svg;
+
+    var tbody = $(tbodyId);
+    if (tbody) tbody.innerHTML = sortedWorld.map(function (w) {
+      return '<tr><td>' + esc(w.Area) + '</td><td>' + esc(w.Understanding) + '</td></tr>';
+    }).join("");
+  }
+
+  render();
+
+  // ---------- live Notion sync (optional; degrades to the snapshot above) ----------
+  function setConnChip(mode, text) {
+    var chip = $("connChip");
+    chip.className = "chip " + mode;
+    $("connChipText").textContent = text;
+    $("setConnector").textContent = text;
+  }
+  function showBanner(text) {
+    var b = $("connBanner");
+    if (!text) { b.style.display = "none"; b.textContent = ""; return; }
+    b.style.display = "block"; b.textContent = text;
+  }
+  var AUTHZ_CODES = ["needs_reauth","server_not_connected","selection_required","blocked_by_policy","approval_required","not_granted","capability_disabled","capability_removed"];
+  var liveCtx = { mcp: null, server: null, tool: null };
+
+  async function initLiveSync() {
+    if (!window.claude || typeof window.claude.use !== "function") {
+      setConnChip("offline", "Notion 未連携(スナップショット表示)"); return;
+    }
+    var mcp;
+    try { mcp = await window.claude.use("mcp"); } catch (e) { mcp = null; }
+    if (!mcp) { setConnChip("offline", "Notion 未連携(スナップショット表示)"); return; }
+
+    var servers;
+    try { servers = await mcp.listTools(); } catch (e) { setConnChip("offline", "Notion 未連携(スナップショット表示)"); return; }
+    var notion = null, toolName = null;
+    (servers.servers || []).forEach(function (s) {
+      (s.tools || []).forEach(function (t) {
+        if (/query.?data.?sources/i.test(t.name)) { notion = s; toolName = t.name; }
+      });
+    });
+    if (!notion) { setConnChip("offline", "Notion 未連携 — claude.ai 設定 → コネクタで追加"); return; }
+
+    liveCtx.mcp = mcp; liveCtx.server = notion.server; liveCtx.tool = toolName;
+    setConnChip("live", "Notion 接続中…");
+
+    var errCount = 0, okCount = 0, total = 3;
+    function noteResult(ok) {
+      if (ok) okCount++; else errCount++;
+      if (okCount + errCount >= total) {
+        if (okCount === 0 && errCount === total) {
+          setConnChip("offline", "Notion 未連携(スナップショット表示)");
+          showBanner("Notionコネクタに接続できませんでした。claude.ai の 設定 → コネクタ から Notion を追加/再接続してください。");
+        } else if (errCount > 0) {
+          setConnChip("warn", "Notion 一部同期エラー"); showBanner(null);
+        } else {
+          setConnChip("live", "Notion ライブ同期中"); showBanner(null);
+        }
+      }
+    }
+
+    function watch(key, dsUrl, query) {
+      var settled = false;
+      mcp.watchTool(notion.server, toolName, { data: { data_source_urls: [dsUrl], query: query } }, function (ev) {
+        if (ev.type === "data") {
+          try {
+            var payload = ev.result.payload;
+            if (typeof payload === "string") payload = JSON.parse(payload);
+            var rows = (payload && payload.results) || [];
+            state[key] = rows;
+            state.meta[key].live = true;
+            state.meta[key].updatedAt = (ev.result.cache && ev.result.cache.storedAt) || Date.now();
+            render();
+          } catch (e) { /* keep last-good data */ }
+          if (!settled) { settled = true; noteResult(true); }
+        } else if (ev.type === "error") {
+          if (AUTHZ_CODES.indexOf(ev.error.code) !== -1) { state.meta[key].live = false; render(); }
+          if (!settled) { settled = true; noteResult(false); }
+        }
+      }, { refetchInterval: 60000 });
+    }
+
+    watch("world", DS.world, QUERIES.world);
+    watch("quest", DS.quest, QUERIES.quest);
+    watch("battle", DS.battle, QUERIES.battle);
+  }
+
+  $("refreshBtn").addEventListener("click", function () {
+    if (!liveCtx.mcp) return;
+    var btn = $("refreshBtn");
+    btn.textContent = "🔄 更新中…";
+    liveCtx.mcp.invalidate(liveCtx.server, liveCtx.tool).catch(function () {}).finally(function () {
+      setTimeout(function () { btn.textContent = "🔄 今すぐ更新"; }, 800);
+    });
+  });
+
+  initLiveSync();
+})();
+</script>
