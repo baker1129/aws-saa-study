@@ -750,18 +750,24 @@
       return (b["date:Date:start"]||"").localeCompare(a["date:Date:start"]||"");
     }).map(function (q) {
       var methods = parseArr(q.Method);
+      var complete = q["Quest Complete"] === "__YES__";
       return '<div class="quest-entry">' +
-        '<div class="quest-entry-head"><span class="quest-title">' + esc(q.Quest||"") + '</span><span class="quest-date">' + esc(q["date:Date:start"]||"") + '</span></div>' +
+        '<div class="quest-entry-head">' +
+          (q.Lesson != null ? '<span class="chip-sm">Lesson ' + esc(q.Lesson) + '</span>' : '') +
+          '<span class="quest-title">' + esc(q.Quest||"") + '</span>' +
+          (complete ? '<span class="pill pill-good">🎯 Quest Complete</span>' : '') +
+          '<span class="quest-date">' + esc(q["date:Date:start"]||"") + '</span>' +
+        '</div>' +
         '<div class="quest-meta">' + methods.map(function (m) { return '<span class="chip-sm">' + esc(m) + '</span>'; }).join("") +
-          '<span class="chip-sm">Result: ' + esc(q.Result || "未設定") + '</span></div>' +
-        (q["Next Quest"] ? '<p class="quest-next">Next Quest: <b>' + esc(q["Next Quest"]) + '</b></p>' : '') +
+          (q.Result ? '<span class="chip-sm">' + esc(q.Result) + '</span>' : '') + '</div>' +
+        (q["Next Quest"] ? '<p class="quest-next">Next Quest(未受注): <b>' + esc(q["Next Quest"]) + '</b></p>' : '') +
         (q.url ? '<a class="dl" href="' + esc(fixNotionUrl(q.url)) + '" target="_blank" rel="noopener">Notionで開く →</a>' : '') +
       '</div>';
     }).join("") : '<p class="empty-inline">まだ記録なし。</p>';
 
     // activity feed
     var acts = [];
-    quest.forEach(function (q) { if (q["date:Date:start"]) acts.push({date:q["date:Date:start"], icon:"📜", text: (q.Quest || "Quest") + " を記録"}); });
+    quest.forEach(function (q) { if (q["date:Date:start"]) acts.push({date:q["date:Date:start"], icon: q["Quest Complete"] === "__YES__" ? "🎯" : "📜", text: (q.Quest || "Quest") + (q["Quest Complete"] === "__YES__" ? " をComplete" : " を記録")}); });
     battle.forEach(function (b) { if (b["date:Date:start"]) acts.push({date:b["date:Date:start"], icon: b.Result === "⭕ WIN" ? "⚔️" : "💀", text: (b.Battle || "戦闘") + (b.Result ? " ・ " + b.Result : "")}); });
     acts.sort(function (a,b) { return b.date.localeCompare(a.date); });
     $("activityList").innerHTML = acts.length ? acts.slice(0,6).map(function (a) {
