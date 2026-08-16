@@ -248,23 +248,6 @@
   .quest-next b { color: var(--ink-soft); font-weight: 600; }
   .quest-entry a.dl { font-size: 11px; margin-top: 6px; display: inline-block; }
 
-  /* achievements full */
-  .ach-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .ach-grid.full { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
-  .ach-tile {
-    aspect-ratio: 1; border: 1px solid var(--border); display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 4px; text-align: center; padding: 6px 4px;
-  }
-  .ach-grid.full .ach-tile { aspect-ratio: auto; padding: 16px 12px; gap: 6px; }
-  .ach-tile .g { font-size: 18px; filter: grayscale(1); opacity: 0.35; }
-  .ach-grid.full .ach-tile .g { font-size: 24px; }
-  .ach-tile.unlocked { border-color: var(--border-hi); background: var(--accent-dim); }
-  .ach-tile.unlocked .g { filter: none; opacity: 1; }
-  .ach-tile .t { font-size: 8.5px; color: var(--ink-muted); line-height: 1.3; }
-  .ach-grid.full .ach-tile .t { font-size: 12px; font-weight: 600; color: var(--ink-soft); }
-  .ach-tile.unlocked .t { color: var(--ink-soft); }
-  .ach-tile .d { font-size: 10.5px; color: var(--ink-muted); margin-top: 2px; }
-
   /* resources */
   .resource-list { display: flex; flex-direction: column; gap: 10px; }
   .resource-item {
@@ -367,7 +350,6 @@
       <button data-view="exam">⚔️ 模擬試験</button>
       <button data-view="weakpoint">🕸️ 弱点分析</button>
       <button data-view="notes">📝 ノート</button>
-      <button data-view="achievements">🏅 アチーブメント</button>
       <button data-view="resources">📚 リソース</button>
       <button data-view="settings">⚙️ 設定</button>
     </nav>
@@ -419,7 +401,6 @@
             <p class="hero-title display">AWS SAA QUEST</p>
             <p class="hero-sub">クラウドの知識を冒険し、スキルを極めよう</p>
           </div>
-          <span class="hero-chip">🔥 連続学習 <b class="mono" id="heroStreak">–</b> 日</span>
         </div>
         <span class="hero-here" id="heroHere">現在地を計算中…</span>
       </div>
@@ -533,12 +514,6 @@
       <div class="panel-box"><div class="timeline" id="notesTimeline"></div></div>
     </section>
 
-    <!-- ============ VIEW: achievements ============ -->
-    <section class="view" id="view-achievements" hidden>
-      <div class="view-head"><h2>🏅 アチーブメント</h2><p>実データから自動判定(捏造なし)</p></div>
-      <div class="ach-grid full" id="achFullGrid"></div>
-    </section>
-
     <!-- ============ VIEW: resources ============ -->
     <section class="view" id="view-resources" hidden>
       <div class="view-head"><h2>📚 リソース</h2><p>管理元のNotionへの直リンク</p></div>
@@ -579,13 +554,6 @@
           </div>
         </div>
         <div class="week-bars" id="weekBars"></div>
-      </div>
-    </section>
-
-    <section class="panel">
-      <div class="panel-box">
-        <div class="panel-head"><h2 class="panel-title">🏅 アチーブメント</h2></div>
-        <div class="ach-grid" id="achGrid"></div>
       </div>
     </section>
 
@@ -667,15 +635,6 @@
   }
 
   // ---------- derived stats ----------
-  function computeStreak(quest) {
-    var dates = Array.from(new Set(quest.map(function (q) { return q["date:Date:start"]; }).filter(Boolean))).sort().reverse();
-    if (!dates.length) return 0;
-    var streak = 1, cur = dates[0];
-    for (var i = 1; i < dates.length; i++) {
-      if (addDays(dates[i], 1) === cur) { streak++; cur = dates[i]; } else break;
-    }
-    return streak;
-  }
   function currentWorld(world) {
     var sorted = world.slice().sort(function (a,b) { return a.WORLD - b.WORLD; });
     for (var i = 0; i < sorted.length; i++) {
@@ -690,19 +649,8 @@
     if (clearedCount >= 1) return {icon:"🧭", title:"探索者"};
     return {icon:"🧭", title:"見習い探検家"};
   }
-  function computeAchievements(world, quest, battle, streak) {
-    return [
-      {icon:"🧭", label:"初めてのクエスト", desc:"Quest Logを1件記録する", unlocked: quest.length >= 1},
-      {icon:"🔥", label:"3日連続学習", desc:"3日連続でQuest Logを記録する", unlocked: streak >= 3},
-      {icon:"⚔️", label:"初勝利", desc:"Battle LogでWINを1件記録する", unlocked: battle.some(function (b) { return b.Result === "⭕ WIN"; })},
-      {icon:"🗺️", label:"全World着手", desc:"9つのWorldすべてを未到達から進める", unlocked: world.length > 0 && world.every(function (w) { return w.Status !== "⬜ 未到達"; })},
-      {icon:"👑", label:"全Worldマスター", desc:"9つのWorldすべてを⭐MASTERにする", unlocked: world.length > 0 && world.every(function (w) { return w.Status === "⭐ MASTER"; })},
-      {icon:"🏆", label:"模試クリア", desc:"模擬試験/FINAL BOSSでWINを記録する", unlocked: battle.some(function (b) { return (b.Type === "🏆 模擬試験" || b.Type === "🐉 FINAL BOSS") && b.Result === "⭕ WIN"; })}
-    ];
-  }
-
   // ---------- view switching ----------
-  var VIEWS = ["dashboard","quests","path","exam","weakpoint","notes","achievements","resources","settings"];
+  var VIEWS = ["dashboard","quests","path","exam","weakpoint","notes","resources","settings"];
   function showView(name) {
     VIEWS.forEach(function (v) {
       var el = $("view-" + v);
@@ -740,7 +688,6 @@
     var pct = world.length ? cleared / world.length : 0;
     var sorted = world.slice().sort(function (a,b) { return a.WORLD - b.WORLD; });
     var cw = currentWorld(world);
-    var streak = computeStreak(quest);
 
     // ring
     var C = 251.2;
@@ -758,7 +705,6 @@
     $("stepperRow").innerHTML = stepHtml;
     $("stepperCaption").innerHTML = cw ? "現在地: <b>" + esc(cw.Area) + "</b>" : "<b>全World到達済み！</b> お疲れさまでした。";
     $("heroHere").textContent = cw ? "📍 現在地: " + cw.Area : "📍 全World到達済み";
-    $("heroStreak").textContent = streak;
 
     // quest cards (dashboard recommend, top 3)
     var candidates = sorted.filter(function (w) { return w.Status !== "🟢 攻略済" && w.Status !== "⭐ MASTER"; });
@@ -861,15 +807,6 @@
       var h = Math.max(4, Math.round(counts[i] / maxC * 56));
       var lbl = ["日","月","火","水","木","金","土"][new Date(d + "T00:00:00Z").getUTCDay()];
       return '<div class="week-bar"><div class="bar" style="height:56px"><span style="height:' + h + 'px"></span></div><span class="lbl">' + lbl + '</span></div>';
-    }).join("");
-
-    // achievements (mini + full)
-    var achievements = computeAchievements(world, quest, battle, streak);
-    $("achGrid").innerHTML = achievements.map(function (a) {
-      return '<div class="ach-tile ' + (a.unlocked ? "unlocked" : "") + '"><span class="g">' + a.icon + '</span><span class="t">' + esc(a.label) + '</span></div>';
-    }).join("");
-    $("achFullGrid").innerHTML = achievements.map(function (a) {
-      return '<div class="ach-tile ' + (a.unlocked ? "unlocked" : "") + '"><span class="g">' + a.icon + '</span><span class="t">' + esc(a.label) + '</span><span class="d">' + esc(a.desc) + (a.unlocked ? " ・ 達成済み" : "") + '</span></div>';
     }).join("");
 
     // activity feed
