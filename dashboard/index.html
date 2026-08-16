@@ -266,12 +266,6 @@
   /* rail */
   .rail { border-left: 1px solid var(--border); padding: 22px 18px 40px; background: var(--panel); }
   .rail .panel-box { padding: 16px 16px; }
-  .week-bars { display: flex; align-items: flex-end; gap: 6px; height: 64px; margin-top: 14px; }
-  .week-bar { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; height: 100%; }
-  .week-bar .bar { width: 100%; background: rgba(255,255,255,0.06); position: relative; min-height: 3px; }
-  .week-bar .bar > span { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(180deg, var(--cyan), var(--accent)); }
-  .week-bar .lbl { font-size: 9px; color: var(--ink-muted); }
-
   .activity-list { display: flex; flex-direction: column; gap: 10px; }
   .activity-item { display: flex; gap: 9px; align-items: flex-start; }
   .activity-item .g { font-size: 13px; flex: none; }
@@ -537,13 +531,6 @@
   <aside class="rail">
     <section class="panel">
       <div class="panel-box">
-        <div class="panel-head"><h2 class="panel-title">📅 今週の学習日</h2></div>
-        <div class="week-bars" id="weekBars"></div>
-      </div>
-    </section>
-
-    <section class="panel">
-      <div class="panel-box">
         <div class="panel-head"><h2 class="panel-title">📜 最近のアクティビティ</h2></div>
         <div class="activity-list" id="activityList"><p class="empty-inline">読み込み中…</p></div>
       </div>
@@ -608,8 +595,6 @@
     if (!u) return null;
     return /app\.notion\.com\/(?!p\/)/.test(u) ? u.replace("app.notion.com/", "app.notion.com/p/") : u;
   }
-  function todayISO() { var d = new Date(); return d.toISOString().slice(0,10); }
-  function addDays(iso, n) { var d = new Date(iso + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0,10); }
   function fmtAgo(ts) {
     if (!ts) return "--";
     var s = Math.round((Date.now() - ts) / 1000);
@@ -769,17 +754,6 @@
         (q.url ? '<a class="dl" href="' + esc(fixNotionUrl(q.url)) + '" target="_blank" rel="noopener">Notionで開く →</a>' : '') +
       '</div>';
     }).join("") : '<p class="empty-inline">まだ記録なし。</p>';
-
-    // week bars (last 7 days, real Quest Log counts)
-    var today = todayISO();
-    var days = []; for (var i = 6; i >= 0; i--) days.push(addDays(today, -i));
-    var counts = days.map(function (d) { return quest.filter(function (q) { return q["date:Date:start"] === d; }).length; });
-    var maxC = Math.max.apply(null, counts.concat([1]));
-    $("weekBars").innerHTML = days.map(function (d, i) {
-      var h = Math.max(4, Math.round(counts[i] / maxC * 56));
-      var lbl = ["日","月","火","水","木","金","土"][new Date(d + "T00:00:00Z").getUTCDay()];
-      return '<div class="week-bar"><div class="bar" style="height:56px"><span style="height:' + h + 'px"></span></div><span class="lbl">' + lbl + '</span></div>';
-    }).join("");
 
     // activity feed
     var acts = [];
