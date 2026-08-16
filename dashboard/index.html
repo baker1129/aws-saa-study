@@ -605,10 +605,14 @@
   }
 
   // ---------- derived stats ----------
+  // Cleared/Master are derived from Understanding, not the manually-set Status —
+  // reaching Lv3/Lv4 understanding clears the world on its own, no separate status flip needed.
+  function isMaster(w) { return w.Status === "⭐ MASTER" || w.Understanding === "⚔️ 問題で判断できる"; }
+  function isCleared(w) { return isMaster(w) || w.Status === "🟢 攻略済" || w.Understanding === "💡 自分で説明できる"; }
   function currentWorld(world) {
     var sorted = world.slice().sort(function (a,b) { return a.WORLD - b.WORLD; });
     for (var i = 0; i < sorted.length; i++) {
-      if (sorted[i].Status !== "🟢 攻略済" && sorted[i].Status !== "⭐ MASTER") return sorted[i];
+      if (!isCleared(sorted[i])) return sorted[i];
     }
     return null;
   }
@@ -647,7 +651,7 @@
   // ---------- render ----------
   function render() {
     var world = state.world, quest = state.quest, battle = state.battle;
-    var cleared = world.filter(function (w) { return w.Status === "🟢 攻略済" || w.Status === "⭐ MASTER"; }).length;
+    var cleared = world.filter(isCleared).length;
     var pct = world.length ? cleared / world.length : 0;
     var sorted = world.slice().sort(function (a,b) { return a.WORLD - b.WORLD; });
     var cw = currentWorld(world);
@@ -660,7 +664,7 @@
     // stepper
     var stepHtml = "";
     sorted.forEach(function (w, i) {
-      var done = w.Status === "🟢 攻略済" || w.Status === "⭐ MASTER";
+      var done = isCleared(w);
       var active = cw && w.WORLD === cw.WORLD;
       stepHtml += '<div class="step-node ' + (done ? "done" : (active ? "active" : "")) + '" title="' + esc(w.Area) + '">' + (done ? "✓" : w.WORLD) + '</div>';
       if (i < sorted.length - 1) stepHtml += '<div class="step-line ' + (done ? "done" : "") + '"></div>';
@@ -670,7 +674,7 @@
     $("heroHere").textContent = cw ? "📍 現在地: " + cw.Area : "📍 全World到達済み";
 
     // quest cards (dashboard recommend, top 3)
-    var candidates = sorted.filter(function (w) { return w.Status !== "🟢 攻略済" && w.Status !== "⭐ MASTER"; });
+    var candidates = sorted.filter(function (w) { return !isCleared(w); });
     candidates.sort(function (a,b) {
       var rank = function (w) { return w.Status === "🟡 探索中" ? 0 : 1; };
       return rank(a) - rank(b) || a.WORLD - b.WORLD;
@@ -684,16 +688,16 @@
 
     // path view
     $("pathList").innerHTML = sorted.map(function (w, i) {
-      var done = w.Status === "🟢 攻略済" || w.Status === "⭐ MASTER";
+      var done = isCleared(w);
       var active = cw && w.WORLD === cw.WORLD;
-      var uScore = U_SCORE[w.Understanding] || 0;
       return '<div class="path-row">' +
         '<div class="path-rail"><div class="step-node ' + (done ? "done" : (active ? "active" : "")) + '">' + (done ? "✓" : w.WORLD) + '</div>' +
           (i < sorted.length - 1 ? '<div class="line ' + (done ? "done" : "") + '"></div>' : '') + '</div>' +
         '<div class="path-body">' +
           '<p class="path-name">' + esc(w.Area) + '</p>' +
-          '<p class="path-meta">' + esc(CAT_LABEL[w.Category] || w.Category || "") + ' ・ ' + esc(w.Status) + ' ・ ' + esc(w.Understanding) + '</p>' +
+          '<p class="path-meta">' + esc(CAT_LABEL[w.Category] || w.Category || "") + ' ・ ' + esc(w.Understanding) + '</p>' +
           '<p class="path-services">' + esc(w["Key Services"] || "") + '</p>' +
+          (w["Quest Complete条件"] ? '<p class="path-meta">クリア条件: ' + esc(w["Quest Complete条件"]) + '</p>' : '') +
           (w["Next Mission"] ? '<p class="path-meta">Next: ' + esc(w["Next Mission"]) + '</p>' : '') +
           (w.url ? '<a class="dl" href="' + esc(fixNotionUrl(w.url)) + '" target="_blank" rel="noopener">Notionで開く →</a>' : '') +
         '</div></div>';
@@ -766,7 +770,9 @@
 
     // goal banner
     if (cw) {
-      $("goalText").textContent = "「" + cw.Area + "」を探索して、Statusを🟡探索中に進めよう";
+      $("goalText").textContent = cw["Quest Complete条件"]
+        ? "「" + cw.Area + "」のクリア条件: " + cw["Quest Complete条件"]
+        : "「" + cw.Area + "」を自分の言葉で説明できるようになろう";
       $("goalLink").href = fixNotionUrl(cw.url) || "https://app.notion.com/p/3bd29672672f813ba8a8e0e733c612f5";
     } else if (!boss.length) {
       $("goalText").textContent = "全World到達済み。模擬試験でFINAL BOSSに挑む準備をしよう";
@@ -786,12 +792,13 @@
 
   function worldCardHtml(w) {
     var uScore = U_SCORE[w.Understanding] || 0;
-    var cls = w.Status === "🟡 探索中" ? "explore" : (w.Status === "🟢 攻略済" ? "done" : (w.Status === "⭐ MASTER" ? "master" : ""));
+    var cls = isMaster(w) ? "master" : (isCleared(w) ? "done" : (w.Status === "🟡 探索中" ? "explore" : ""));
     return '<div class="quest-card ' + cls + '">' +
       '<div class="quest-card-top"><p class="quest-card-name">' + esc(w.Area) + '</p><span class="quest-card-cat">' + esc(CAT_LABEL[w.Category] || w.Category || "") + '</span></div>' +
       '<p class="quest-card-services">' + esc(w["Key Services"] || "") + '</p>' +
       '<div class="quest-card-bar"><span style="width:' + (uScore/3*100) + '%"></span></div>' +
-      '<div class="quest-card-foot"><span class="u">' + esc(w.Status) + ' / ' + esc(w.Understanding || "") + '</span>' +
+      (w["Quest Complete条件"] ? '<p class="path-meta">クリア条件: ' + esc(w["Quest Complete条件"]) + '</p>' : '') +
+      '<div class="quest-card-foot"><span class="u">' + esc(w.Understanding || "") + '</span>' +
       (w.url ? '<a href="' + esc(fixNotionUrl(w.url)) + '" target="_blank" rel="noopener">Notionで開く →</a>' : '') +
       '</div></div>';
   }
